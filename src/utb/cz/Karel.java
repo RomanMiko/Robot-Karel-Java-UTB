@@ -5,23 +5,12 @@ import java.awt.*;
 import javax.security.auth.x500.X500Principal;
 import javax.swing.*;
 import java.util.*;
-
-import java.awt.EventQueue;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.List;
-import java.awt.Toolkit;
 import java.util.ArrayList;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.RepaintManager;
-
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -34,6 +23,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.security.ProtectionDomain;
+import java.awt.event.MouseMotionAdapter;
 
 
 public class Karel {
@@ -65,6 +55,7 @@ public class Karel {
 	public static final int KAREL_SPEED_MAX = 5000;
 	public static final int KAREL_SPEED_INIT = 0;
 	int karelSpeed;
+	int karelText;
 	
 	class Field {
 		int count;
@@ -222,12 +213,14 @@ public class Karel {
 	/**
 	 * Launch the application.
 	 */
-	
-	public void zacni() {
+	public static void main(String[] args) {			//for windowbuilder
+	//public void zacni() {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					frame.setVisible(true);
+					Karel window = new Karel();			//for windowbuilder
+					window.frame.setVisible(true);		//for windowbuilder
+					//frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -278,7 +271,7 @@ public class Karel {
 	private void initialize() {
 		
 		int frameWidth = 2*spacex+41*kTown.length+1;
-		int frameHeight = 2*spacey+41*kTown[0].length+1+80;
+		int frameHeight = 2*spacey+41*kTown[0].length+1+240;
 		
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 		int frameX = dim.width/2-frameWidth/2;
@@ -286,10 +279,11 @@ public class Karel {
 		
 		frame = new JFrame();
 		frame.setBounds(frameX,frameY,frameWidth,frameHeight);
-		frame.setBounds(frameX,frameY,900,800); // for windowbuilder
+		//frame.setBounds(frameX,frameY,900,700); // for windowbuilder
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		JPanel panel_town = new Town();
+		
 		frame.getContentPane().add(panel_town, BorderLayout.CENTER);
 		frame.getContentPane().addMouseListener(new MouseAdapter() {
 			@Override
@@ -354,72 +348,93 @@ public class Karel {
 		});
 		
 		JPanel panel_toolbar = new JPanel();
-		frame.getContentPane().add(panel_toolbar, BorderLayout.SOUTH);
 		
-		JLabel lblNewLabel = new JLabel("New label");
-		panel_toolbar.add(lblNewLabel);
 		ImageIcon kZedIcon = new ImageIcon(panel_toolbar.getClass().getResource("/Zed.png"));
 		ImageIcon kDumIcon = new ImageIcon(panel_toolbar.getClass().getResource("/Dum.png"));
 		ImageIcon kRobotIcon = new ImageIcon(panel_toolbar.getClass().getResource("/KarelVpravo.png"));
 		ImageIcon kZnackaPlusIcon = new ImageIcon(panel_toolbar.getClass().getResource("/ZnackaPlus.png"));
 		ImageIcon kZnackaMinusIcon = new ImageIcon(panel_toolbar.getClass().getResource("/ZnackaMinus.png"));
-			
+		
+		frame.getContentPane().add(panel_toolbar, BorderLayout.SOUTH);
+		panel_toolbar.setLayout(new BoxLayout(panel_toolbar, BoxLayout.Y_AXIS));
+		
+		JPanel panel_toolbar_1 = new JPanel();
+		panel_toolbar.add(panel_toolbar_1);
+		
+		JLabel kCoorLbl = new JLabel(". x .");
+		panel_toolbar_1.add(kCoorLbl);
+		
+		panel_town.addMouseMotionListener(new MouseMotionAdapter() {
+			@Override
+			public void mouseMoved(MouseEvent e) {
+				int x = e.getX();
+				int y = e.getY();
+				//System.out.println(getKarelCoordinates(e.getX(),e.getY()));
+				Point p = getKarelCoordinates(e.getX(),e.getY());
+				kCoorLbl.setText((int) p.getX() + " X " + (int) p.getY());
+			}
+		});
+		
 		JButton kDumBtn = new JButton(scaleIcon(kDumIcon));
+		panel_toolbar_1.add(kDumBtn);
 		kDumBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				kSelectedBtn = SelectedButten.Dum;
 			}
 		});
-		kDumBtn.setBackground(Color.WHITE);
-		kDumBtn.setName("kDumBtn");
-		panel_toolbar.add(kDumBtn);
+		//kDumBtn.setBackground(Color.WHITE);
+		//kDumBtn.setName("kDumBtn");
 		
 		JButton kRobotBtn = new JButton(scaleIcon(kRobotIcon));
+		panel_toolbar_1.add(kRobotBtn);
 		kRobotBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				kSelectedBtn = SelectedButten.Karel;
 			}
 		});
-		kRobotBtn.setBackground(Color.WHITE);
-		kRobotBtn.setSize(40, 40);
-		panel_toolbar.add(kRobotBtn);
+		//kRobotBtn.setBackground(Color.WHITE);
+		//kRobotBtn.setSize(40, 40);
 		
 		JButton kZnackaPlusBtn = new JButton(scaleIcon(kZnackaPlusIcon));
+		panel_toolbar_1.add(kZnackaPlusBtn);
 		kZnackaPlusBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				kSelectedBtn = SelectedButten.ZnackaPlus;
 			}
 		});
-		kZnackaPlusBtn.setBackground(Color.WHITE);
-		panel_toolbar.add(kZnackaPlusBtn);
-
+		//kZnackaPlusBtn.setBackground(Color.WHITE);
+		
 		JButton kZnackaMinusBtn = new JButton(scaleIcon(kZnackaMinusIcon));
+		panel_toolbar_1.add(kZnackaMinusBtn);
 		kZnackaMinusBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				kSelectedBtn = SelectedButten.ZnackaMinus;
 			}
 		});
 		kZnackaMinusBtn.setBackground(Color.WHITE);
-		panel_toolbar.add(kZnackaMinusBtn);
-		
+				
 		JButton kZedBtn = new JButton(scaleIcon(kZedIcon));
+		panel_toolbar_1.add(kZedBtn);
 		kZedBtn.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+		public void actionPerformed(ActionEvent e) {
 				kSelectedBtn = SelectedButten.Zed;
 			}
 		});
 		kZedBtn.setBackground(Color.WHITE);
-		panel_toolbar.add(kZedBtn);
+		
+		JPanel panel_toolbar_2 = new JPanel();
+		panel_toolbar.add(panel_toolbar_2);
 		
 		JButton kSmazBtn = new JButton("Smaž");
+		panel_toolbar_2.add(kSmazBtn);
 		kSmazBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				kSelectedBtn = SelectedButten.Smaz;
 			}
 		});
-		panel_toolbar.add(kSmazBtn);
-
+		
 		JButton kSmazVseBtn = new JButton("SmažVše");
+		panel_toolbar_2.add(kSmazVseBtn);
 		kSmazVseBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				kSelectedBtn = SelectedButten.SmazVse;
@@ -434,38 +449,64 @@ public class Karel {
 				panel_town.repaint();
 			}
 		});
-		panel_toolbar.add(kSmazVseBtn);
 		
 		JButton kNahrajBtn = new JButton("Nahrát");
+		panel_toolbar_2.add(kNahrajBtn);
 		kNahrajBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 			}
-		});
-		panel_toolbar.add(kNahrajBtn);
-
+		});		
+				
 		JButton kUlozBtn = new JButton("Uložit");
+		panel_toolbar_2.add(kUlozBtn);
 		kUlozBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 			}
 		});
-		panel_toolbar.add(kUlozBtn);
+				
+		JPanel panel_toolbar_3 = new JPanel();
+		panel_toolbar.add(panel_toolbar_3);
+		
+		JLabel speedLbl = new JLabel("Rychlost");
+		panel_toolbar_3.add(speedLbl);
 		
 		JSlider kSpeedSlider = new JSlider(JSlider.HORIZONTAL,
-                KAREL_SPEED_MIN, KAREL_SPEED_MAX, KAREL_SPEED_INIT);
+                							KAREL_SPEED_MIN,
+                							KAREL_SPEED_MAX,
+                							KAREL_SPEED_INIT);
 
 		kSpeedSlider.setMajorTickSpacing(1000);
 		kSpeedSlider.setMinorTickSpacing(100);
 		kSpeedSlider.setPaintTicks(true);
 		//kSpeedSlider.setPaintLabels(true);
-		panel_toolbar.add(kSpeedSlider);
+		panel_toolbar_3.add(kSpeedSlider);
+		
+		JPanel panel_toolbar_4 = new JPanel();
+		panel_toolbar_4.setSize(400, 200);
+		panel_toolbar_4.setBackground(Color.white);
+		panel_toolbar.add(panel_toolbar_4);
+		
+		JTextArea textArea = new JTextArea(5,50);
+		JScrollPane scrollPane = new JScrollPane(textArea);
+		String karelText = "\n\n\n\n";
+		//textArea.setText(karelText);
+		panel_toolbar_4.add(scrollPane);
+		
+	
 		
 	}
 
+	// karlovy soukrome funkce
 	private ImageIcon scaleIcon(ImageIcon i) {
 		return new ImageIcon(i.getImage().getScaledInstance(20, 20, java.awt.Image.SCALE_SMOOTH));
 	}
 	
-
+	private Point getKarelCoordinates(int x, int y) {
+		return new Point(( x - spacex - 1 ) / 41 + 1,
+						 kTown[0].length - ( y - spacey - 1 ) / 41
+				   );
+	}
+	
 	private void slowDownRepaint() {
 		try {
 			Thread.sleep(1000);

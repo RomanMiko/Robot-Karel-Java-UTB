@@ -1,9 +1,14 @@
 package utb.cz;
 
+import utb.cz.Karel;
+
 public class Main {
 
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
+		Karel k=new Karel();
+		k.zacni();
+		while(true)
+		k.krok();
 
 	}
 

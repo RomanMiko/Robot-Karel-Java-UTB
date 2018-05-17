@@ -222,12 +222,12 @@ public class Karel {
 	/**
 	 * Launch the application.
 	 */
-	public static void main(String[] args) {
+	
+	public void zacni() {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					Karel window = new Karel();
-					window.frame.setVisible(true);
+					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -468,7 +468,7 @@ public class Karel {
 
 	private void slowDownRepaint() {
 		try {
-			Thread.sleep(4000);
+			Thread.sleep(1000);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -493,7 +493,7 @@ public class Karel {
 			y--;
 			break;
 		}
-		if (x > 0 && y > 0 && x < kTown.length && y < kTown[0].length) {
+		if (x >= 0 && y >= 0 && x < kTown.length && y < kTown[0].length) {
 			if (kTown[x][y] != null && !kTown[x][y].zed) {
 				karelx = x;
 				karely = y;
@@ -502,6 +502,7 @@ public class Karel {
 				karely = y;
 			}
 		}	
+		slowDownRepaint();
 	}
 	
 	public void vleloVbok() {

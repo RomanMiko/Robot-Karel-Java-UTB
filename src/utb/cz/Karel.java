@@ -1,6 +1,8 @@
 package utb.cz;
 
 import java.awt.*;
+
+import javax.security.auth.x500.X500Principal;
 import javax.swing.*;
 import java.util.*;
 
@@ -36,7 +38,10 @@ import java.awt.event.MouseEvent;
 public class Karel {
 	
 	public enum Typ {
-	    Karel, Dum, Zed, Znacka, Smaz, SmazVse 
+	    Karel, Dum, Zed, Znacka 
+	}
+	public enum SelectedButten {
+	    Karel, Dum, Zed, ZnackaPlus, ZnackaMinus, Smaz,  SmazVse 
 	}
 	public enum Smer {
 	    Vprevo, Nahoru, Vlevo, Dolu 
@@ -47,15 +52,13 @@ public class Karel {
 	int spacex = 10;
 	int spacey = 10;
 	
-	Typ kSelectedType = null;
+	SelectedButten kSelectedBtn = null;
 	
 	int karelx;
 	int karely;
 	Smer karelSmer;
 	int dumx;
 	int dumy;
-	
-	int[] karelPoint = new int[2];
 	
 	class Field {
 		int count;
@@ -230,7 +233,7 @@ public class Karel {
 	 * Create the application.
 	 */
 	public Karel() {
-		this.kTown = new Field[10][10];
+		this.kTown = new Field[15][15];
 		this.karelx = 0;
 		this.karely = 0;
 		this.karelSmer = Smer.Vprevo;
@@ -274,7 +277,7 @@ public class Karel {
 		
 		frame = new JFrame();
 		frame.setBounds(frameX,frameY,frameWidth,frameHeight);
-		//frame.setBounds(frameX,frameY,420,510); // for windowbuilder
+		//frame.setBounds(frameX,frameY,700,700); // for windowbuilder
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		JPanel panel_town = new Town();
@@ -289,11 +292,14 @@ public class Karel {
 				int starty = spacey;
 				int endx = kTown.length*40 + spacex + kTown.length + 1 + 2;
 				int endy = kTown[0].length*40 + spacey + kTown[0].length + 1 + 2 ;
-				if (kSelectedType != null && x > startx && x < endx && y > starty && y < endy ) {
+				if (kSelectedBtn != null && x > startx && x < endx && y > starty && y < endy ) {
 					int kx = (x-11)/40;
 					int ky = kTown[0].length - (y-14)/40 - 1;
 					System.out.println(kTown[kx][ky]);
-					switch (kSelectedType) {
+					switch (kSelectedBtn) {
+					case Smaz:
+						kTown[kx][ky] = null;
+						break;
 					case Karel:
 						if (kTown[kx][ky] != null && kTown[kx][ky].zed) break;
 						karelx = kx;
@@ -311,12 +317,19 @@ public class Karel {
 						if (dumx == kx && dumy == ky) break;
 						kTown[kx][ky] = new Field(Typ.Zed);
 						break;
-					case Znacka:
+					case ZnackaPlus:
 						if (kTown[kx][ky] != null && kTown[kx][ky].zed) break;
 						if (kTown[kx][ky] == null) {
 							kTown[kx][ky] = new Field(Typ.Znacka);
 						} else if (kTown[kx][ky].count < 6) {
 							kTown[kx][ky].count++;
+						}
+						break;
+					case ZnackaMinus:
+						if (kTown[kx][ky] != null && !kTown[kx][ky].zed) {
+							if (kTown[kx][ky].count > 1) {
+								kTown[kx][ky].count--;
+							} else kTown[kx][ky] = null;
 						}
 						break;
 					}
@@ -339,54 +352,101 @@ public class Karel {
 		ImageIcon kZedIcon = new ImageIcon(panel_toolbar.getClass().getResource("/Zed.png"));
 		ImageIcon kDumIcon = new ImageIcon(panel_toolbar.getClass().getResource("/Dum.png"));
 		ImageIcon kRobotIcon = new ImageIcon(panel_toolbar.getClass().getResource("/KarelVpravo.png"));
-		ImageIcon kZnackaIcon = new ImageIcon(panel_toolbar.getClass().getResource("/Znacka1.png"));
+		ImageIcon kZnackaPlusIcon = new ImageIcon(panel_toolbar.getClass().getResource("/ZnackaPlus.png"));
+		ImageIcon kZnackaMinusIcon = new ImageIcon(panel_toolbar.getClass().getResource("/ZnackaMinus.png"));
 			
-		JButton kDumBtn = new JButton(kDumIcon);
+		JButton kDumBtn = new JButton(scaleIcon(kDumIcon));
 		kDumBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				kSelectedType = Typ.Dum;
+				kSelectedBtn = SelectedButten.Dum;
 			}
 		});
 		kDumBtn.setBackground(Color.WHITE);
 		kDumBtn.setName("kDumBtn");
 		panel_toolbar.add(kDumBtn);
 		
-		JButton kRobotBtn = new JButton(kRobotIcon);
+		JButton kRobotBtn = new JButton(scaleIcon(kRobotIcon));
 		kRobotBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				kSelectedType = Typ.Karel;
+				kSelectedBtn = SelectedButten.Karel;
 			}
 		});
 		kRobotBtn.setBackground(Color.WHITE);
 		kRobotBtn.setSize(40, 40);
 		panel_toolbar.add(kRobotBtn);
 		
-		JButton kZnackaBtn = new JButton(kZnackaIcon);
-		kZnackaBtn.addActionListener(new ActionListener() {
+		JButton kZnackaPlusBtn = new JButton(scaleIcon(kZnackaPlusIcon));
+		kZnackaPlusBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				kSelectedType = Typ.Znacka;
+				kSelectedBtn = SelectedButten.ZnackaPlus;
 			}
 		});
-		kZnackaBtn.setBackground(Color.WHITE);
-		panel_toolbar.add(kZnackaBtn);
+		kZnackaPlusBtn.setBackground(Color.WHITE);
+		panel_toolbar.add(kZnackaPlusBtn);
+
+		JButton kZnackaMinusBtn = new JButton(scaleIcon(kZnackaMinusIcon));
+		kZnackaMinusBtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				kSelectedBtn = SelectedButten.ZnackaMinus;
+			}
+		});
+		kZnackaMinusBtn.setBackground(Color.WHITE);
+		panel_toolbar.add(kZnackaMinusBtn);
 		
-		JButton kZedBtn = new JButton(kZedIcon);
+		JButton kZedBtn = new JButton(scaleIcon(kZedIcon));
 		kZedBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				kSelectedType = Typ.Zed;
+				kSelectedBtn = SelectedButten.Zed;
 			}
 		});
 		kZedBtn.setBackground(Color.WHITE);
-		kZedBtn.setSize(40, 40);
 		panel_toolbar.add(kZedBtn);
 		
+		JButton kSmazBtn = new JButton("Smaž");
+		kSmazBtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				kSelectedBtn = SelectedButten.Smaz;
+			}
+		});
+		panel_toolbar.add(kSmazBtn);
+
+		JButton kSmazVseBtn = new JButton("SmažVše");
+		kSmazVseBtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				kSelectedBtn = SelectedButten.SmazVse;
+				int x = kTown.length;
+				int y = kTown[0].length;
+				kTown = new Field[x][y];
+				karelx = 0;
+				karely = 0;
+				karelSmer = Smer.Vprevo;
+				dumx = 0;
+				dumy = 0;
+				panel_town.repaint();
+			}
+		});
+		panel_toolbar.add(kSmazVseBtn);
 		
+		JButton kNahrajBtn = new JButton("Nahrát");
+		kNahrajBtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+			}
+		});
+		panel_toolbar.add(kNahrajBtn);
+
+		JButton kUlozBtn = new JButton("Uložit");
+		kUlozBtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+			}
+		});
+		panel_toolbar.add(kUlozBtn);
 		
-		JButton btnNewButton = new JButton("");
-		btnNewButton.setSize(40, 40);
-		panel_toolbar.add(btnNewButton);
 	}
 
+	private ImageIcon scaleIcon(ImageIcon i) {
+		return new ImageIcon(i.getImage().getScaledInstance(20, 20, java.awt.Image.SCALE_SMOOTH));
+	}
+	
 	public void krok() {
 		int x = karelx;
 		int y = karely;
@@ -415,6 +475,7 @@ public class Karel {
 		}	
 	}
 	
+	// Karlovy instrukce
 	public void vleloVbok() {
 		switch (karelSmer) {
 		case Vprevo:

@@ -33,6 +33,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.security.ProtectionDomain;
 
 
 public class Karel {
@@ -59,6 +60,11 @@ public class Karel {
 	Smer karelSmer;
 	int dumx;
 	int dumy;
+	
+	public static final int KAREL_SPEED_MIN = 0;
+	public static final int KAREL_SPEED_MAX = 5000;
+	public static final int KAREL_SPEED_INIT = 0;
+	int karelSpeed;
 	
 	class Field {
 		int count;
@@ -237,6 +243,7 @@ public class Karel {
 		this.karelx = 0;
 		this.karely = 0;
 		this.karelSmer = Smer.Vprevo;
+		this.karelSpeed = 0;
 		this.dumx = 0;
 		this.dumy = 0;
 		
@@ -247,6 +254,7 @@ public class Karel {
 		this.karelx = 0;
 		this.karely = 0;
 		this.karelSmer = Smer.Vprevo;
+		this.karelSpeed = 0;
 		this.dumx = 0;
 		this.dumy = 0;
 		
@@ -257,6 +265,7 @@ public class Karel {
 		this.karelx = karelx;
 		this.karely = karely;
 		this.karelSmer = karelSmer;
+		this.karelSpeed = 0;
 		this.dumx = dumx;
 		this.dumy = dumy;
 		
@@ -277,7 +286,7 @@ public class Karel {
 		
 		frame = new JFrame();
 		frame.setBounds(frameX,frameY,frameWidth,frameHeight);
-		//frame.setBounds(frameX,frameY,700,700); // for windowbuilder
+		frame.setBounds(frameX,frameY,900,800); // for windowbuilder
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		JPanel panel_town = new Town();
@@ -441,12 +450,32 @@ public class Karel {
 		});
 		panel_toolbar.add(kUlozBtn);
 		
+		JSlider kSpeedSlider = new JSlider(JSlider.HORIZONTAL,
+                KAREL_SPEED_MIN, KAREL_SPEED_MAX, KAREL_SPEED_INIT);
+
+		kSpeedSlider.setMajorTickSpacing(1000);
+		kSpeedSlider.setMinorTickSpacing(100);
+		kSpeedSlider.setPaintTicks(true);
+		//kSpeedSlider.setPaintLabels(true);
+		panel_toolbar.add(kSpeedSlider);
+		
 	}
 
 	private ImageIcon scaleIcon(ImageIcon i) {
 		return new ImageIcon(i.getImage().getScaledInstance(20, 20, java.awt.Image.SCALE_SMOOTH));
 	}
 	
+
+	private void slowDownRepaint() {
+		try {
+			Thread.sleep(4000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		frame.getComponent(0).repaint();
+	}
+
+	// Karlovy instrukce
 	public void krok() {
 		int x = karelx;
 		int y = karely;
@@ -475,7 +504,6 @@ public class Karel {
 		}	
 	}
 	
-	// Karlovy instrukce
 	public void vleloVbok() {
 		switch (karelSmer) {
 		case Vprevo:
@@ -491,6 +519,7 @@ public class Karel {
 			karelSmer = Smer.Vprevo;
 			break;
 		}
+		slowDownRepaint();
 	}
 	
 	public void polozZnacku() {
@@ -500,6 +529,7 @@ public class Karel {
 		} else if(kTown[karelx][karely].count < 6) {
 			kTown[karelx][karely].count++;
 		}
+		slowDownRepaint();
 	}
 	
 	public void zvedniZnacku() {
@@ -509,5 +539,6 @@ public class Karel {
 		} else if(kTown[karelx][karely].count > 1) {
 			kTown[karelx][karely].count--;
 		}
+		slowDownRepaint();
 	}
 }// end Karel

@@ -24,6 +24,9 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
+
+import org.w3c.dom.css.ElementCSSInlineStyle;
+
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
@@ -402,7 +405,13 @@ public class Karel {
 			break;
 		}
 		if (x > 0 && y > 0 && x < kTown.length && y < kTown[0].length) {
-			
+			if (kTown[x][y] != null && !kTown[x][y].zed) {
+				karelx = x;
+				karely = y;
+			} else if (kTown[x][y] == null) {
+				karelx = x;
+				karely = y;
+			}
 		}	
 	}
 	

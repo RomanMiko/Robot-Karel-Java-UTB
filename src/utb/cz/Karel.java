@@ -24,6 +24,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.security.ProtectionDomain;
 import java.awt.event.MouseMotionAdapter;
+import javax.swing.event.AncestorListener;
+import javax.swing.event.AncestorEvent;
 
 
 public class Karel {
@@ -52,10 +54,12 @@ public class Karel {
 	int dumy;
 	
 	public static final int KAREL_SPEED_MIN = 0;
-	public static final int KAREL_SPEED_MAX = 5000;
-	public static final int KAREL_SPEED_INIT = 0;
+	public static final int KAREL_SPEED_MAX = 2000;
+	public static final int KAREL_SPEED_INIT = 2000;
 	int karelSpeed;
-	int karelText;
+	private JSlider kSpeedSlider;
+	String karelText = "";
+	private JTextArea textArea;
 	
 	class Field {
 		int count;
@@ -213,14 +217,14 @@ public class Karel {
 	/**
 	 * Launch the application.
 	 */
-	public static void main(String[] args) {			//for windowbuilder
-	//public void zacni() {
+	//public static void main(String[] args) {			//for windowbuilder
+	public void zacni() {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					Karel window = new Karel();			//for windowbuilder
-					window.frame.setVisible(true);		//for windowbuilder
-					//frame.setVisible(true);
+					//Karel window = new Karel();			//for windowbuilder
+					//window.frame.setVisible(true);		//for windowbuilder
+					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -236,7 +240,7 @@ public class Karel {
 		this.karelx = 0;
 		this.karely = 0;
 		this.karelSmer = Smer.Vprevo;
-		this.karelSpeed = 0;
+		this.karelSpeed = 2000;
 		this.dumx = 0;
 		this.dumy = 0;
 		
@@ -367,9 +371,6 @@ public class Karel {
 		panel_town.addMouseMotionListener(new MouseMotionAdapter() {
 			@Override
 			public void mouseMoved(MouseEvent e) {
-				int x = e.getX();
-				int y = e.getY();
-				//System.out.println(getKarelCoordinates(e.getX(),e.getY()));
 				Point p = getKarelCoordinates(e.getX(),e.getY());
 				kCoorLbl.setText((int) p.getX() + " X " + (int) p.getY());
 			}
@@ -470,10 +471,22 @@ public class Karel {
 		JLabel speedLbl = new JLabel("Rychlost");
 		panel_toolbar_3.add(speedLbl);
 		
-		JSlider kSpeedSlider = new JSlider(JSlider.HORIZONTAL,
+		kSpeedSlider = new JSlider(JSlider.HORIZONTAL,
                 							KAREL_SPEED_MIN,
                 							KAREL_SPEED_MAX,
                 							KAREL_SPEED_INIT);
+		kSpeedSlider.addAncestorListener(new AncestorListener() {
+			public void ancestorAdded(AncestorEvent event) {
+				karelSpeed = kSpeedSlider.getValue();
+				System.out.println("added");
+			}
+			public void ancestorMoved(AncestorEvent event) {
+				System.out.println("moved");
+			}
+			public void ancestorRemoved(AncestorEvent event) {
+				System.out.println("removed");
+			}
+		});
 
 		kSpeedSlider.setMajorTickSpacing(1000);
 		kSpeedSlider.setMinorTickSpacing(100);
@@ -486,10 +499,8 @@ public class Karel {
 		panel_toolbar_4.setBackground(Color.white);
 		panel_toolbar.add(panel_toolbar_4);
 		
-		JTextArea textArea = new JTextArea(5,50);
+		textArea = new JTextArea(5,50);
 		JScrollPane scrollPane = new JScrollPane(textArea);
-		String karelText = "\n\n\n\n";
-		//textArea.setText(karelText);
 		panel_toolbar_4.add(scrollPane);
 		
 	
@@ -509,13 +520,18 @@ public class Karel {
 	
 	private void slowDownRepaint() {
 		try {
-			Thread.sleep(1000);
+			Thread.sleep(kSpeedSlider.getValue());
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 		frame.getComponent(0).repaint();
 	}
 
+	private void addKarelText(String s) {
+		karelText += "\n" + s;
+		textArea.setText(karelText);
+	}
+	
 	// Karlovy instrukce
 	public void krok() {
 		int x = karelx;
@@ -541,8 +557,8 @@ public class Karel {
 			} else if (kTown[x][y] == null) {
 				karelx = x;
 				karely = y;
-			}
-		}	
+			} else addKarelText("Nemůžu učinit KROK, přede mnou je zeď.");
+		} else addKarelText("Nemůžu učinit KROK, přede mnou je zeď.");
 		slowDownRepaint();
 	}
 	
@@ -570,7 +586,7 @@ public class Karel {
 			kTown[karelx][karely] = new Field(Typ.Znacka);
 		} else if(kTown[karelx][karely].count < 6) {
 			kTown[karelx][karely].count++;
-		}
+		} else addKarelText("Nemůžu položit značku, pole je plné.");
 		slowDownRepaint();
 	}
 	
@@ -580,7 +596,7 @@ public class Karel {
 			kTown[karelx][karely] = null;
 		} else if(kTown[karelx][karely].count > 1) {
 			kTown[karelx][karely].count--;
-		}
+		} else addKarelText("Nemůžu zvednout značku, pole je prazdné.");
 		slowDownRepaint();
 	}
 }// end Karel

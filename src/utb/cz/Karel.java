@@ -40,6 +40,15 @@ public class Karel {
 	    Vprevo, Nahoru, Vlevo, Dolu 
 	}
 	
+	private class KPoint {
+	    public int x;
+	    public int y;
+
+	    public KPoint(int x, int y) {
+	        this.x = x;
+	        this.y = y;
+	    }
+	}
 	
 	Field[][] kTown;
 	int spacex = 10;
@@ -102,7 +111,7 @@ public class Karel {
 			Image kDoluImg = new ImageIcon(this.getClass().getResource("/KarelDolu.png")).getImage();
 			Image kNahoruImg = new ImageIcon(this.getClass().getResource("/KarelNahoru.png")).getImage();
 			Image kVlevoImg = new ImageIcon(this.getClass().getResource("/KarelVlevo.png")).getImage();
-			Image kVpravoImg = new ImageIcon(this.getClass().getResource("/KarelVpravo.png")).getImage();
+			Image kVpravoImg = new ImageIcon(this.getClass().getResource("/KarelVpravoTransparetní.png")).getImage();
 			Image kZedImg = new ImageIcon(this.getClass().getResource("/Zed.png")).getImage();
 			Image kZnacka1Img = new ImageIcon(this.getClass().getResource("/Znacka1.png")).getImage();
 			Image kZnacka2Img = new ImageIcon(this.getClass().getResource("/Znacka2.png")).getImage();
@@ -217,14 +226,14 @@ public class Karel {
 	/**
 	 * Launch the application.
 	 */
-	//public static void main(String[] args) {			//for windowbuilder
-	public void zacni() {
+	public static void main(String[] args) {			//for windowbuilder
+	//public void zacni() {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					//Karel window = new Karel();			//for windowbuilder
-					//window.frame.setVisible(true);		//for windowbuilder
-					frame.setVisible(true);
+					Karel window = new Karel();			//for windowbuilder
+					window.frame.setVisible(true);		//for windowbuilder
+					//frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -368,13 +377,13 @@ public class Karel {
 		JLabel kCoorLbl = new JLabel(". x .");
 		panel_toolbar_1.add(kCoorLbl);
 		
-		panel_town.addMouseMotionListener(new MouseMotionAdapter() {
+		/*panel_town.addMouseMotionListener(new MouseMotionAdapter() {
 			@Override
 			public void mouseMoved(MouseEvent e) {
 				Point p = getKarelCoordinates(e.getX(),e.getY());
 				kCoorLbl.setText((int) p.getX() + " X " + (int) p.getY());
 			}
-		});
+		});*/
 		
 		JButton kDumBtn = new JButton(scaleIcon(kDumIcon));
 		panel_toolbar_1.add(kDumBtn);
@@ -532,6 +541,26 @@ public class Karel {
 		textArea.setText(karelText);
 	}
 	
+	private KPoint getKarelFront() {
+		int x = karelx;
+		int y = karely;
+		switch (karelSmer) {
+		case Vprevo:
+			x++;
+			break;
+		case Nahoru:
+			y++;
+			break;
+		case Vlevo:
+			x--;
+			break;
+		case Dolu:
+			y--;
+			break;
+		}
+		return new KPoint(x, y);
+	}
+	
 	// Karlovy instrukce
 	public void krok() {
 		int x = karelx;
@@ -598,5 +627,164 @@ public class Karel {
 			kTown[karelx][karely].count--;
 		} else addKarelText("Nemůžu zvednout značku, pole je prazdné.");
 		slowDownRepaint();
+		
 	}
+	
+	private boolean jeZed(int x, int y) {
+		if(x > 0 && y > 0 && x < kTown.length && y < kTown[0].length) return true;
+		if(kTown[x][y] == null) return false;
+		return  kTown[x][y].zed;
+	}
+	
+	public boolean jePredemnouZed() {
+		int x = karelx;
+		int y = karely;
+		switch (karelSmer) {
+		case Vprevo:
+			x++;
+			break;
+		case Nahoru:
+			y++;
+			break;
+		case Vlevo:
+			x--;
+			break;
+		case Dolu:
+			y--;
+			break;
+		}
+		return jeZed(x, y);
+	}
+
+	public boolean jeVlevoZed() {
+		int x = karelx;
+		int y = karely;
+		switch (karelSmer) {
+		case Vprevo:
+			y++;
+			break;
+		case Nahoru:
+			x--;
+			break;
+		case Vlevo:
+			y--;
+			break;
+		case Dolu:
+			x++;
+			break;
+		}
+		return jeZed(x, y);
+	}
+
+	public boolean jeVpravoZed() {
+		int x = karelx;
+		int y = karely;
+		switch (karelSmer) {
+		case Vprevo:
+			y--;
+			break;
+		case Nahoru:
+			x++;
+			break;
+		case Vlevo:
+			y++;
+			break;
+		case Dolu:
+			x--;
+			break;
+		}
+		return jeZed(x, y);
+	}
+
+	public boolean jePredemnouVolno() {
+		int x = karelx;
+		int y = karely;
+		switch (karelSmer) {
+		case Vprevo:
+			x++;
+			break;
+		case Nahoru:
+			y++;
+			break;
+		case Vlevo:
+			x--;
+			break;
+		case Dolu:
+			y--;
+			break;
+		}
+		return !jeZed(x, y);
+	}
+
+	public boolean jeVlevoVolno() {
+		int x = karelx;
+		int y = karely;
+		switch (karelSmer) {
+		case Vprevo:
+			y++;
+			break;
+		case Nahoru:
+			x--;
+			break;
+		case Vlevo:
+			y--;
+			break;
+		case Dolu:
+			x++;
+			break;
+		}
+		return !jeZed(x, y);
+	}
+
+	public boolean jeVpravoVolno() {
+		int x = karelx;
+		int y = karely;
+		switch (karelSmer) {
+		case Vprevo:
+			y--;
+			break;
+		case Nahoru:
+			x++;
+			break;
+		case Vlevo:
+			y++;
+			break;
+		case Dolu:
+			x--;
+			break;
+		}
+		return !jeZed(x, y);
+	}
+	
+	public boolean jeZdeZnacka() {
+		if(kTown[karelx][karely] == null) return false;
+		return !kTown[karelx][karely].zed;
+	}
+
+	public int pocetZnacek() {
+		if(kTown[karelx][karely] == null || kTown[karelx][karely].zed) return 0;
+		return kTown[karelx][karely].count;
+	}
+
+	public boolean jeZdeDomecek() {
+		return karelx == dumx && karely == dumy;
+	}
+	
+	public boolean jeOtocenyNaSever() {
+		return karelSmer == Smer.Nahoru;
+	}
+
+	public boolean jeOtocenyNaJih() {
+		return karelSmer == Smer.Dolu;
+	}
+
+	public boolean jeOtocenyNaZapad() {
+		return karelSmer == Smer.Vlevo;
+	}
+
+	public boolean jeOtocenyNaVychod() {
+		return karelSmer == Smer.Vprevo;
+	}
+	
+	
 }// end Karel

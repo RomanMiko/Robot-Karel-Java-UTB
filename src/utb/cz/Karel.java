@@ -116,7 +116,7 @@ public class Karel {
 			Image kDoluImg = new ImageIcon(this.getClass().getResource("/KarelDolu.png")).getImage();
 			Image kNahoruImg = new ImageIcon(this.getClass().getResource("/KarelNahoru.png")).getImage();
 			Image kVlevoImg = new ImageIcon(this.getClass().getResource("/KarelVlevo.png")).getImage();
-			Image kVpravoImg = new ImageIcon(this.getClass().getResource("/KarelVpravoTransparetní.png")).getImage();
+			Image kVpravoImg = new ImageIcon(this.getClass().getResource("/KarelVpravo.png")).getImage();
 			Image kZedImg = new ImageIcon(this.getClass().getResource("/Zed.png")).getImage();
 			Image kZnacka1Img = new ImageIcon(this.getClass().getResource("/Znacka1.png")).getImage();
 			Image kZnacka2Img = new ImageIcon(this.getClass().getResource("/Znacka2.png")).getImage();
@@ -367,8 +367,8 @@ public class Karel {
 		JPanel panel_toolbar = new JPanel();
 		
 		ImageIcon kZedIcon = new ImageIcon(panel_toolbar.getClass().getResource("/Zed.png"));
-		ImageIcon kDumIcon = new ImageIcon(panel_toolbar.getClass().getResource("/Dum.png"));
-		ImageIcon kRobotIcon = new ImageIcon(panel_toolbar.getClass().getResource("/KarelVpravo.png"));
+		ImageIcon kDumIcon = new ImageIcon(panel_toolbar.getClass().getResource("/DumIkona.png"));
+		ImageIcon kRobotIcon = new ImageIcon(panel_toolbar.getClass().getResource("/KarelIkona.png"));
 		ImageIcon kZnackaPlusIcon = new ImageIcon(panel_toolbar.getClass().getResource("/ZnackaPlus.png"));
 		ImageIcon kZnackaMinusIcon = new ImageIcon(panel_toolbar.getClass().getResource("/ZnackaMinus.png"));
 		

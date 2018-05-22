@@ -24,6 +24,11 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.security.ProtectionDomain;
 import java.awt.event.MouseMotionAdapter;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+
 import javax.swing.event.AncestorListener;
 import javax.swing.event.AncestorEvent;
 
@@ -226,14 +231,14 @@ public class Karel {
 	/**
 	 * Launch the application.
 	 */
-	public static void main(String[] args) {			//for windowbuilder
-	//public void zacni() {
+	//public static void main(String[] args) {			//for windowbuilder
+	public void zacni() {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					Karel window = new Karel();			//for windowbuilder
-					window.frame.setVisible(true);		//for windowbuilder
-					//frame.setVisible(true);
+					//Karel window = new Karel();			//for windowbuilder
+					//window.frame.setVisible(true);		//for windowbuilder
+					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -245,13 +250,16 @@ public class Karel {
 	 * Create the application.
 	 */
 	public Karel() {
-		this.kTown = new Field[15][15];
+		loadWorld("karel.save");
+		this.karelSmer = Smer.Vprevo;
+		this.karelSpeed = 2000;
+		/*this.kTown = new Field[10][10];
 		this.karelx = 0;
 		this.karely = 0;
 		this.karelSmer = Smer.Vprevo;
 		this.karelSpeed = 2000;
 		this.dumx = 0;
-		this.dumy = 0;
+		this.dumy = 0;*/
 		
 		initialize();
 	}
@@ -266,14 +274,10 @@ public class Karel {
 		
 		initialize();
 	}
-	public Karel(int karelx, int karely, Smer karelSmer, int dumx, int dumy, Field[][] t) {
-		this.kTown = t;
-		this.karelx = karelx;
-		this.karely = karely;
-		this.karelSmer = karelSmer;
-		this.karelSpeed = 0;
-		this.dumx = dumx;
-		this.dumy = dumy;
+	public Karel(String s) {
+		loadWorld(s);
+		this.karelSmer = Smer.Vprevo;
+		this.karelSpeed = 2000;
 		
 		initialize();
 	}
@@ -282,10 +286,10 @@ public class Karel {
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
-		
-		int frameWidth = 2*spacex+41*kTown.length+1;
+		final int KAREL_WIDTH_MIN = 363;
+		int frameWidth = 2*spacex+41*kTown.length+1 < KAREL_WIDTH_MIN?KAREL_WIDTH_MIN:2*spacex+41*kTown.length+1;
 		int frameHeight = 2*spacey+41*kTown[0].length+1+240;
-		
+		//System.out.println(frameWidth);
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 		int frameX = dim.width/2-frameWidth/2;
 		int frameY = dim.height/2-frameHeight/2;
@@ -464,6 +468,7 @@ public class Karel {
 		panel_toolbar_2.add(kNahrajBtn);
 		kNahrajBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				loadWorld("karel.save");
 			}
 		});		
 				
@@ -471,6 +476,7 @@ public class Karel {
 		panel_toolbar_2.add(kUlozBtn);
 		kUlozBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				saveWorld();
 			}
 		});
 				
@@ -484,18 +490,6 @@ public class Karel {
                 							KAREL_SPEED_MIN,
                 							KAREL_SPEED_MAX,
                 							KAREL_SPEED_INIT);
-		kSpeedSlider.addAncestorListener(new AncestorListener() {
-			public void ancestorAdded(AncestorEvent event) {
-				karelSpeed = kSpeedSlider.getValue();
-				System.out.println("added");
-			}
-			public void ancestorMoved(AncestorEvent event) {
-				System.out.println("moved");
-			}
-			public void ancestorRemoved(AncestorEvent event) {
-				System.out.println("removed");
-			}
-		});
 
 		kSpeedSlider.setMajorTickSpacing(1000);
 		kSpeedSlider.setMinorTickSpacing(100);
@@ -508,7 +502,8 @@ public class Karel {
 		panel_toolbar_4.setBackground(Color.white);
 		panel_toolbar.add(panel_toolbar_4);
 		
-		textArea = new JTextArea(5,50);
+		int TAWidth = (int) Math.round(frameWidth/12.5);
+		textArea = new JTextArea(5,TAWidth);
 		JScrollPane scrollPane = new JScrollPane(textArea);
 		panel_toolbar_4.add(scrollPane);
 		
@@ -541,24 +536,114 @@ public class Karel {
 		textArea.setText(karelText);
 	}
 	
-	private KPoint getKarelFront() {
-		int x = karelx;
-		int y = karely;
-		switch (karelSmer) {
-		case Vprevo:
-			x++;
-			break;
-		case Nahoru:
-			y++;
-			break;
-		case Vlevo:
-			x--;
-			break;
-		case Dolu:
-			y--;
-			break;
+	private void saveWorld() {
+		String save = "";
+		for (int j = kTown.length; j >= -1; j--) {
+			for (int i = -1; i <= kTown[0].length; i++) {
+				if(i == -1 || j == -1 || i == kTown.length || j == kTown[0].length) {
+					save += "X";
+				} else if (i == karelx && j == karely) {
+					save += "K";
+				} else if (i == dumx && j == dumy) {
+					save += "H";
+				} else if (kTown[i][j] == null) {
+					save += "_";
+				} else if (kTown[i][j].zed) {
+					save += "#";
+				} else if (kTown[i][j].count > 0) {
+					save += Integer.toString(kTown[i][j].count);
+				}
+			}
+			if (j != -1) save += "\n";
 		}
-		return new KPoint(x, y);
+		//System.out.println(save);
+		writeToFile(save);
+	}
+	
+	private void loadWorld(String fileName) {
+		String[] s = readFromFile(fileName);
+		if(s == null) {
+			kTown = new Field[10][10];
+			karelx = 0;
+			karely = 0;
+			karelSmer = Smer.Vprevo;
+			karelSpeed = 2000;
+			dumx = 0;
+			dumy = 0;
+			return;
+		}
+		System.out.println(s);
+		kTown = new Field[s.length-2][s[0].length()-2];
+		for (int i = 1; i < (s.length - 1); i++) {
+			char[] r = s[i].toCharArray();
+			for (int j = 1; j < (s.length - 1); j++) {
+				int y = s.length - i - 2;
+				int x = j - 1;
+				if (r[j] == 'K') {
+					karelx = x;
+					karely = y;
+					karelSmer = Smer.Vprevo;
+				} else if (r[j] == 'H') {
+					dumx = x;
+					dumy = y;
+				} else if (r[j] == '#') {
+					kTown[x][y] = new Field(Typ.Zed);
+				} else if (r[j] == '1') {
+					kTown[x][y] = new Field(Typ.Znacka);
+				} else if (r[j] == '2') {
+					kTown[x][y] = new Field(Typ.Znacka);
+					kTown[x][y].count++;
+				} else if (r[j] == '3') {
+					kTown[x][y] = new Field(Typ.Znacka);
+					kTown[x][y].count = 3;
+				} else if (r[j] == '4') {
+					kTown[x][y] = new Field(Typ.Znacka);
+					kTown[x][y].count = 4;
+				} else if (r[j] == '5') {
+					kTown[x][y] = new Field(Typ.Znacka);
+					kTown[x][y].count = 5;
+				} else if (r[j] == '6') {
+					kTown[x][y] = new Field(Typ.Znacka);
+					kTown[x][y].count = 6;
+				}
+			}
+		}
+		if (frame != null) {
+			frame.getComponent(0).repaint();
+		}
+	}
+	
+	private void writeToFile(String t) {
+		try (BufferedWriter bw = new BufferedWriter(new FileWriter("saves/karel.save")))
+		{
+		        bw.write(t);
+		        bw.flush();
+		}
+		catch (Exception e)
+		{
+		        System.err.println("Do souboru se nepovedlo zapsat." + e);
+		}
+	}
+	
+	private String[] readFromFile(String fileName) {
+		System.out.println("Vypisuji celý soubor:");
+		try (BufferedReader br = new BufferedReader(new FileReader("saves/" + fileName)))
+		{
+		        String s;
+		        ArrayList<String> sal = new ArrayList<>();
+		        while ((s = br.readLine()) != null)
+		        {
+		                System.out.println(s);
+		                sal.add(s);
+		        }
+		        return sal.toArray(new String[0]);
+		}
+		catch (Exception e)
+		{
+		        System.err.println("Chyba při četení ze souboru." + e);
+		        
+		}
+		return null;
 	}
 	
 	// Karlovy instrukce
@@ -631,7 +716,9 @@ public class Karel {
 	}
 	
 	private boolean jeZed(int x, int y) {
-		if(x > 0 && y > 0 && x < kTown.length && y < kTown[0].length) return true;
+		System.out.println(kTown.length + ", " + kTown[0].length);
+		System.out.println(x + ", " + y);
+		if(x < 0 || y < 0 || x >= kTown.length || y >= kTown[0].length) return true;
 		if(kTown[x][y] == null) return false;
 		return  kTown[x][y].zed;
 	}
@@ -697,63 +784,15 @@ public class Karel {
 	}
 
 	public boolean jePredemnouVolno() {
-		int x = karelx;
-		int y = karely;
-		switch (karelSmer) {
-		case Vprevo:
-			x++;
-			break;
-		case Nahoru:
-			y++;
-			break;
-		case Vlevo:
-			x--;
-			break;
-		case Dolu:
-			y--;
-			break;
-		}
-		return !jeZed(x, y);
+		return !jePredemnouZed() ;
 	}
 
 	public boolean jeVlevoVolno() {
-		int x = karelx;
-		int y = karely;
-		switch (karelSmer) {
-		case Vprevo:
-			y++;
-			break;
-		case Nahoru:
-			x--;
-			break;
-		case Vlevo:
-			y--;
-			break;
-		case Dolu:
-			x++;
-			break;
-		}
-		return !jeZed(x, y);
+		return !jeVlevoZed();
 	}
 
 	public boolean jeVpravoVolno() {
-		int x = karelx;
-		int y = karely;
-		switch (karelSmer) {
-		case Vprevo:
-			y--;
-			break;
-		case Nahoru:
-			x++;
-			break;
-		case Vlevo:
-			y++;
-			break;
-		case Dolu:
-			x--;
-			break;
-		}
-		return !jeZed(x, y);
+		return !jeVpravoZed();
 	}
 	
 	public boolean jeZdeZnacka() {
